@@ -112,6 +112,22 @@ async function getBlockByNum(dbo) {
                         || receipt.func_name === "auth.empow/selectUsername") {
                         receiptsUsername(dbo, receipt)
                     }
+                    
+                    if (receipt.func_name === "social.empow/likeWithdraw") {
+                        UpdateAddressService.setQueue(receipt.content[0])
+                    }
+
+                    if (receipt.func_name === "social.empow/blockContent") {
+                        UpdateAddressService.setQueue(receipt.content[0])
+                    }
+
+                    if (receipt.func_name === "social.empow/likeCommentWithdraw") {
+                        UpdateAddressService.setQueue(receipt.content[0])
+                    }
+
+                    if (receipt.func_name === "social.empow/updateProfile") {
+                        receiptsUpdateProfile(dbo, receipt)
+                    }
 
                 });
 
@@ -184,6 +200,13 @@ function getChainInfo() {
             resolve(parseInt(res.head_block))
         })
     })
+}
+
+function receiptsUpdateProfile(dbo, receiptsUpdateProfile) {
+    var content = receiptsUpdateProfile.content;
+    if (Utils.isAddress(content[0])) {
+        UpdateAddressService.setQueue(content[0], false, true)
+    }
 }
 
 function receiptsGas(dbo, receiptsGas, publisher) {
