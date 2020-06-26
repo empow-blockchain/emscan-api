@@ -1,0 +1,25 @@
+{
+  "name": "empow-api",
+  "version": "1.0.0",
+  "description": "API for Empow Wallet",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app --port 8081"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.19.0",
+    "body-parser": "^1.19.0",
+    "bs58": "^4.0.1",
+    "buffer": "^5.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^8.0.0",
+    "empowjs": "^1.0.0",
+    "express": "^4.17.1",
+    "mongodb": "^3.4.0",
+    "ping": "^0.2.2",
+    "socket.io": "^2.3.0",
+    "urlencode": "^1.1.0"
+  }
+}

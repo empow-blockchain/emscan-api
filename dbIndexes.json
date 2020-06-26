@@ -1,0 +1,101 @@
+{
+    "address_transactions": [
+        {
+            "address": 1
+        }
+    ],
+    "addresses": [
+        {
+            "address": 1
+        },
+        {
+            "username": 1
+        },
+        {
+            "selected_username": 1
+        }
+    ],
+    "blocks": [
+        {
+            "number": 1
+        }
+    ],
+    "comments": [
+        {
+            "postId": 1,
+            "commentId": 1
+        }
+    ],
+    "follows": [
+        {
+            "address": 1
+        },
+        {
+            "target": 1
+        }
+    ],
+    "likes": [
+        {
+            "postId": 1
+        },
+        {
+            "address": 1
+        }
+    ],
+    "posts": [
+        {
+            "postId": 1
+        },
+        {
+            "author": 1
+        }
+    ],
+    "producers": [
+        {
+            "address": 1
+        }
+    ],
+    "stakes": [
+        {
+            "address": 1
+        }
+    ],
+    "tokens": [
+        {
+            "symbol": 1
+        }
+    ],
+    "transactions": [
+        {
+            "hash": 1
+        },
+        {
+            "blockNumber": -1
+        }
+    ],
+    "tags": [
+        {
+            "tag": 1
+        }
+    ],
+    "notifications": [
+        {
+            "myAddress": 1
+        }
+    ],
+    "reports": [
+        {
+            "postId": 1
+        }
+    ],
+    "like_comments": [
+        {
+            "postId": 1,
+            "commentId": 1
+        },
+        {
+            "address": 1
+        }
+    ],
+    "tag_trending": []
+}
