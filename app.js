@@ -10,9 +10,11 @@ const Block = require('./routers/Block');
 const Transaction = require('./routers/Transaction');
 const AddressTransaction = require('./routers/AddressTransaction')
 const Producer = require('./routers/Producer')
-
 const Token = require('./routers/Token')
 const Stake = require('./routers/Stake')
+
+const EmpowService = require("./services/EmpowService")
+const UpdateAddressService = require("./scripts/UpdateAddressService")
 
 const bodyParser = require("body-parser");
 const mkdirp = require('mkdirp');
@@ -35,6 +37,10 @@ const init = async () => {
     Producer.init(app, dbo)
     Token.init(app, dbo)
     Stake.init(app, dbo)
+
+    // init services
+    UpdateAddressService.init(dbo)
+    EmpowService.init()
 
     app.get('/', (req, res) => {
         return res.send('test 13');
