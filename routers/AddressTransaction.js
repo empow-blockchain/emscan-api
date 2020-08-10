@@ -7,7 +7,7 @@ const AddressTransaction = {
 
         //#region GET 
         app.get('/getAddressTransactions', this.getAddressTransactions);
-        app.get('/getAddressTransfer/:address', this.getAddressTransfer);
+        app.get('/getAddressTransfer/:address/:symbol', this.getAddressTransfer);
         app.get('/getAddressTransaction/:address', this.getAddressTransaction);
         app.get('/getCountAddressTransaction/:address', this.getCountAddressTransaction);
         //#endregion
@@ -38,7 +38,7 @@ const AddressTransaction = {
     },
 
     async getAddressTransfer(req, res) {
-        const result = await DatabaseService.getAddressTransfer(db, req.params.address, req.query.page, req.query.pageSize, req.query.page);
+        const result = await DatabaseService.getAddressTransfer(db, req.params.address, req.params.symbol, req.query.page, req.query.pageSize, req.query.page);
         return res.send(result);
     },
 

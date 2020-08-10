@@ -223,12 +223,12 @@ const DatabaseService = {
         })
     },
 
-    getAddressTransfer(dbo, address, page = '1', pageSize = '20') {
+    getAddressTransfer(dbo, address, symbol = "em", page = '1', pageSize = '20') {
         page = parseInt(page)
         pageSize = parseInt(pageSize)
         return new Promise((resolve, reject) => {
             dbo.collection("address_transactions")
-                .find({ address: address, [`actions.contract`]: "token.empow", [`actions.action_name`]: "transfer" }, { projection: { _id: 0 } })
+                .find({ address: address, [`actions.contract`]: "token.empow", [`actions.action_name`]: "transfer", [`actions.data.0`]: symbol }, { projection: { _id: 0 } })
                 .sort({ time: -1 })
                 .skip(page > 0 ? ((page - 1) * pageSize) : 0)
                 .limit(pageSize)
