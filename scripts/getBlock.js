@@ -69,7 +69,7 @@ async function getBlockByNum(dbo) {
                     if (receipt.func_name === "token.empow/transfer") {
                         receiptsRam(dbo, receipt, transaction.publisher)
                         receiptsEM(dbo, receipt, transaction)
-                        receiptsSymbol(dbo, receipt)
+                        receiptsSymbol(dbo, receipt, transaction)
                     }
 
                     if (receipt.func_name === "auth.empow/signUp") {
@@ -246,7 +246,7 @@ function receiptsEM(dbo, receiptsEM, transaction) {
     }
 }
 
-function receiptsSymbol(dbo, receiptsSymbol) {
+function receiptsSymbol(dbo, receiptsSymbol, transaction) {
     var content = receiptsSymbol.content
     if (content[0] === 'em' || content[0] === 'ram') {
         return;
@@ -258,6 +258,7 @@ function receiptsSymbol(dbo, receiptsSymbol) {
 
     if (Utils.isAddress(content[2])) {
         UpdateAddressService.setQueue(content[2], content[0])
+        updateAddressTransaction(dbo, content[2], transaction)
     }
 }
 
