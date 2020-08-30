@@ -49,10 +49,11 @@ async function getBlockByNum() {
             block.status = res.status;
             var blockTime = block.time / 10**6
 
-            console.log(new Date(blockTime));
-            
             if(block.status !== "IRREVERSIBLE" || blockTime + timeExpri < new Date().getTime() ) {
-                return getBlockByNum()
+                setTimeout(() => {
+                    getBlockByNum()
+                }, 1000)
+                return
             }
 
             console.log("Block: " + block.number + " - transaction: " + block.transactions.length)
