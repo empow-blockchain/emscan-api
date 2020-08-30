@@ -78,7 +78,7 @@ const DatabaseService = {
 
     },
 
-    getTransactions(dbo, page = '1', pageSize = '20', orderBy = 'blockNumber', orderType = '-1', disable_base = false) {
+    getTransactions(dbo, page = '1', pageSize = '20', orderBy = 'time', orderType = '-1', disable_base = false) {
         page = parseInt(page)
         pageSize = parseInt(pageSize)
         orderType = parseInt(orderType)
