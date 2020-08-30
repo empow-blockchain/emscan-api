@@ -17,42 +17,41 @@ const Utils = require('./utils');
 
 var head_block = 2;
 var currentBlock = -1;
+var timeExpri = 2 * 24 * 60 * 60 * 1000;
+var dbo;
 var rpc;
 async function init() {
   
     await EmpowService.init()
     rpc = EmpowService.rpc
-    const dbo = await mongodb.connect();
+    dbo = await mongodb.connect();
     UpdateAddressService.init(dbo)
-    run(dbo)
+    run()
 }
 
-async function run(dbo) {
+async function run() {
     try {
-        // await createCollection(dbo)
-        // await createIndexes(dbo)
-
-        // dbo.collection("blocks").remove();
-        // dbo.collection("transactions").remove();
-        // dbo.collection("addresses").remove();
-        // dbo.collection("transactions").find({"blockNumber":  1296079}).toArray(function (err, docs) {
-        //     console.log(docs)
-        // });
-
-        currentBlock = await getCurrentBlock(dbo);
+        currentBlock = await getCurrentBlock();
         head_block = await getChainInfo()
-        getBlockByNum(dbo)
+        getBlockByNum()
     } catch (ex) {
         console.log(ex)
     }
 }
 
-async function getBlockByNum(dbo) {
+async function getBlockByNum() {
     if (currentBlock <= head_block) {
         rpc.blockchain.getBlockByNum(currentBlock + 1, true).then(res => {
+
             var block = res.block;
+
             block.number = parseInt(block.number);
             block.status = res.status;
+            var blockTime = block.time / 10**6
+            
+            if(block.status !== "IRREVERSIBLE" && blockTime + timeExpri < new Date().getTime() ) {
+                getBlockByNum()
+            }
 
             console.log("Block: " + block.number + " - transaction: " + block.transactions.length)
 
@@ -63,17 +62,17 @@ async function getBlockByNum(dbo) {
             transactions.forEach(transaction => {
                 transaction.tx_receipt.receipts.forEach(receipt => {
                     if (receipt.func_name === "gas.empow/pledge") {
-                        receiptsGas(dbo, receipt, transaction.publisher)
+                        receiptsGas(receipt, transaction.publisher)
                     }
 
                     if (receipt.func_name === "token.empow/transfer") {
-                        receiptsRam(dbo, receipt, transaction.publisher)
-                        receiptsEM(dbo, receipt, transaction)
-                        receiptsSymbol(dbo, receipt, transaction)
+                        receiptsRam(receipt, transaction.publisher)
+                        receiptsEM(receipt, transaction)
+                        receiptsSymbol(receipt, transaction)
                     }
 
                     if (receipt.func_name === "auth.empow/signUp") {
-                        receiptsSignUp(dbo, receipt)
+                        receiptsSignUp(receipt)
                     }
 
                     if (receipt.func_name === "vote_producer.empow/applyRegister"
@@ -84,33 +83,33 @@ async function getBlockByNum(dbo) {
                         || receipt.func_name === "vote_producer.empow/updateProducer"
                         || receipt.func_name === "vote_producer.empow/logInProducer"
                         || receipt.func_name === "vote_producer.empow/logOutProducer") {
-                        receiptsProducer(dbo, receipt, 0)
+                        receiptsProducer(receipt, 0)
                     }
 
                     if (receipt.func_name === "vote_producer.empow/vote" || receipt.func_name === "vote_producer.empow/unvote") {
-                        receiptsProducer(dbo, receipt, 1)
+                        receiptsProducer( receipt, 1)
                     }
 
                     if (receipt.func_name === "token.empow/create") {
-                        receiptsCreate(dbo, receipt)
+                        receiptsCreate(receipt)
                     }
 
                     if (receipt.func_name === "token.empow/issue") {
-                        receiptsIssue(dbo, receipt)
+                        receiptsIssue(receipt)
                     }
 
                     if (receipt.func_name === "stake.empow/stake" || receipt.func_name === "stake.empow/withdraw" || receipt.func_name === "stake.empow/unstake") {
-                        receiptsStake(dbo, receipt)
+                        receiptsStake(receipt)
                     }
 
                     if (receipt.func_name === "token.empow/transferFreeze") {
-                        receiptsTransferFreeze(dbo, receipt)
+                        receiptsTransferFreeze(receipt)
                     }
             
                     if (receipt.func_name === "auth.empow/addNormalUsername"
                         || receipt.func_name === "auth.empow/addPremiumUsername"
                         || receipt.func_name === "auth.empow/selectUsername") {
-                        receiptsUsername(dbo, receipt)
+                        receiptsUsername(receipt)
                     }
                     
                     if (receipt.func_name === "social.empow/likeWithdraw") {
@@ -126,7 +125,7 @@ async function getBlockByNum(dbo) {
                     }
 
                     if (receipt.func_name === "social.empow/updateProfile") {
-                        receiptsUpdateProfile(dbo, receipt)
+                        receiptsUpdateProfile(receipt)
                     }
 
                 });
@@ -163,24 +162,24 @@ async function getBlockByNum(dbo) {
                     head_block = await getChainInfo()
                 }
 
-                getBlockByNum(dbo)
+                getBlockByNum()
             });
             //#endregion
 
         }).catch(async err => {
             setTimeout(async () => {
                 head_block = await getChainInfo()
-                getBlockByNum(dbo)
+                getBlockByNum()
             }, 500);
         })
     } else {
         head_block = await getChainInfo()
-        getBlockByNum(dbo)
+        getBlockByNum()
     }
 
 }
 
-function getCurrentBlock(dbo) {
+function getCurrentBlock() {
     return new Promise((resolve, reject) => {
         const collection = dbo.collection('blocks');
         collection.find().sort({ number: -1 }).limit(1).toArray(function (err, docs) {
@@ -202,21 +201,21 @@ function getChainInfo() {
     })
 }
 
-function receiptsUpdateProfile(dbo, receiptsUpdateProfile) {
+function receiptsUpdateProfile(receiptsUpdateProfile) {
     var content = receiptsUpdateProfile.content;
     if (Utils.isAddress(content[0])) {
         UpdateAddressService.setQueue(content[0], false, true)
     }
 }
 
-function receiptsGas(dbo, receiptsGas, publisher) {
+function receiptsGas(receiptsGas, publisher) {
     var content = receiptsGas.content
     if (content[1] !== publisher && Utils.isAddress(content[1])) {
         UpdateAddressService.setQueue(content[1])
     }
 }
 
-function receiptsRam(dbo, receiptsRam, publisher) {
+function receiptsRam(receiptsRam, publisher) {
     var content = receiptsRam.content
     if (content[0] !== 'ram') {
         return;
@@ -227,14 +226,14 @@ function receiptsRam(dbo, receiptsRam, publisher) {
     }
 }
 
-function receiptsSignUp(dbo, receiptsSignUp) {
+function receiptsSignUp(receiptsSignUp) {
     var address = receiptsSignUp.content[0];
     if (Utils.isAddress(address)) {
         UpdateAddressService.setQueue(address)
     }
 }
 
-function receiptsEM(dbo, receiptsEM, transaction) {
+function receiptsEM(receiptsEM, transaction) {
     var content = receiptsEM.content
     if (content[0] !== 'em') {
         return;
@@ -246,7 +245,7 @@ function receiptsEM(dbo, receiptsEM, transaction) {
     }
 }
 
-function receiptsSymbol(dbo, receiptsSymbol, transaction) {
+function receiptsSymbol(receiptsSymbol, transaction) {
     var content = receiptsSymbol.content
     if (content[0] === 'em' || content[0] === 'ram') {
         return;
@@ -262,17 +261,17 @@ function receiptsSymbol(dbo, receiptsSymbol, transaction) {
     }
 }
 
-function receiptsProducer(dbo, receiptsProducer, index) {
+function receiptsProducer(receiptsProducer, index) {
     var address = receiptsProducer.content[index];
     updateProducer(dbo, address)
 }
 
-function receiptsCreate(dbo, receiptsCreate) {
+function receiptsCreate(receiptsCreate) {
     var symbol = receiptsCreate.content[0];
     updateToken(dbo, symbol)
 }
 
-function receiptsIssue(dbo, receiptsCreate) {
+function receiptsIssue(receiptsCreate) {
     var content = receiptsCreate.content;
     if (Utils.isAddress(content[1])) {
         UpdateAddressService.setQueue(content[1], content[0])
@@ -281,12 +280,12 @@ function receiptsIssue(dbo, receiptsCreate) {
     updateToken(dbo, content[0])
 }
 
-function receiptsStake(dbo, receiptsStake) {
+function receiptsStake(receiptsStake) {
     var content = receiptsStake.content;
     updateStake(dbo, parseInt(content[2]), content[0])
 }
 
-function receiptsTransferFreeze(dbo, receiptsEM) {
+function receiptsTransferFreeze(receiptsEM) {
     var content = receiptsEM.content
     if (content[0] !== 'em') {
         return;
@@ -297,13 +296,11 @@ function receiptsTransferFreeze(dbo, receiptsEM) {
     }
 }
 
-function receiptsUsername(dbo, receiptsUsername) {
+function receiptsUsername(receiptsUsername) {
     var content = receiptsUsername.content;
     if (Utils.isAddress(content[0])) {
         UpdateAddressService.setQueue(content[0], false, false)
     }
 }
-
-
 
 init()
