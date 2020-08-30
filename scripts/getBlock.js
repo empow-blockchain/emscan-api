@@ -17,7 +17,7 @@ const Utils = require('./utils');
 
 var head_block = 2;
 var currentBlock = -1;
-var timeExpri = 2 * 24 * 60 * 60 * 1000;
+var timeExpri = 2 * 24 * 60 * 60 * 1000; // 2 days
 var dbo;
 var rpc;
 async function init() {
@@ -48,8 +48,10 @@ async function getBlockByNum() {
             block.number = parseInt(block.number);
             block.status = res.status;
             var blockTime = block.time / 10**6
+
+            console.log(new Date(blockTime));
             
-            if(block.status !== "IRREVERSIBLE" && blockTime + timeExpri < new Date().getTime() ) {
+            if(block.status !== "IRREVERSIBLE" || blockTime + timeExpri < new Date().getTime() ) {
                 return getBlockByNum()
             }
 
