@@ -276,13 +276,13 @@ const DatabaseService = {
         })
     },
 
-    getBlockProduced(dbo, pubkey) {
-        return dbo.collection("blocks").countDocuments({ witness: pubkey })
+    getBlockProduced(dbo, pubkey, lastUpdateBlock) {
+        return dbo.collection("blocks").countDocuments({ witness: pubkey, number: {$gt: lastUpdateBlock} })
     },
 
-    getBlockReward(dbo, pubkey) {
+    getBlockReward(dbo, pubkey, lastUpdateBlock) {
         return new Promise((resolve, reject) => {
-            dbo.collection("blocks").aggregate([{ $match: { witness: pubkey } }, {
+            dbo.collection("blocks").aggregate([{ $match: { witness: pubkey, number: {$gt: lastUpdateBlock} } }, {
                 $group: { _id: null, sum: { $sum: { $toDouble: "$blockReward" } } }
             }]).toArray(function (err, docs) {
                 if (err) {

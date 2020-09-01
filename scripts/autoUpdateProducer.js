@@ -1,6 +1,6 @@
 require('dotenv').config({ path: '../.env' });
 const mongodb = require('../db')
-const DatabaseService = require('../services/DatabaseService')
+const DatabaseService = require('../services/DatabaseService');
 
 async function init () {
     const dbo = await mongodb.connect();
@@ -12,11 +12,27 @@ init()
 async function run(dbo) {
     try {
         listProducers = await getProducers(dbo)
+        let currentBlock = await DatabaseService.getBlocks(dbo, 1, 1)
+        currentBlock = currentBlock[0].number
+        
 
         for(let i = 0; i < listProducers.length; i++) {
-        	listProducers[i].block_produced = await DatabaseService.getBlockProduced(dbo, listProducers[i].pubkey);
-        	var block_reward = await DatabaseService.getBlockReward(dbo, listProducers[i].pubkey);
-            listProducers[i].block_reward = block_reward.length > 0 ? block_reward[0].sum : 0
+            
+            var block_produced = await DatabaseService.getBlockProduced(dbo, listProducers[i].pubkey, listProducers[i].last_update_block || 0);
+            if(!listProducers[i].block_produced) {
+                listProducers[i].block_produced = block_produced
+            } else {
+                listProducers[i].block_produced += block_produced
+            }
+
+        	var block_reward = await DatabaseService.getBlockReward(dbo, listProducers[i].pubkey, listProducers[i].last_update_block || 0);
+            if(!listProducers[i].block_reward) {
+                listProducers[i].block_reward = block_reward.length > 0 ? block_reward[0].sum : 0
+            } else {
+                listProducers[i].block_reward += block_reward.length > 0 ? block_reward[0].sum : 0
+            }
+            
+            listProducers[i].last_update_block = currentBlock
             updateProducer(listProducers[i], dbo)
             console.log(`Updated ${listProducers[i].pubkey}`);
         }
